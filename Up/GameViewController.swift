@@ -1,6 +1,6 @@
 //
 //  GameViewController.swift
-//  Up
+//  B-Popper
 //
 //  Created by Alex Fetisova on 5/29/17.
 //  Copyright © 2017 Alex Fetisova. All rights reserved.
@@ -14,10 +14,10 @@ class GameViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        print("Controller")
         if let view = self.view as! SKView? {
             // Load the SKScene from 'GameScene.sks'
-            if let scene = SKScene(fileNamed: "GameScene") {
+            if let scene = GameScene(fileNamed: "GameScene") {
                 // Set the scale mode to scale to fit the window
                 scene.scaleMode = .aspectFill
                 
@@ -33,7 +33,7 @@ class GameViewController: UIViewController {
     }
 
     override var shouldAutorotate: Bool {
-        return true
+        return false
     }
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
