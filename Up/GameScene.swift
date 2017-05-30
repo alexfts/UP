@@ -2,7 +2,7 @@
 //  GameScene.swift
 //  B-Popper
 //
-//  Created by Alex Fetisova on 5/29/17.
+//  Created by Alex Fetisova and Reza Asad on 5/29/17.
 //  Copyright © 2017 Alex Fetisova. All rights reserved.
 //
 
@@ -41,4 +41,6 @@ class GameScene: SKScene {
         self.mainCamera!.position.y += 5;
     }
     
+    // Function to add the ballon moving up and wiggling
+    var baloon = 0
 } // class
