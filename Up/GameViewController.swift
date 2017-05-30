@@ -2,7 +2,7 @@
 //  GameViewController.swift
 //  B-Popper
 //
-//  Created by Alex Fetisova on 5/29/17.
+//  Created by Reza Asad and Alex Fetisova on 5/29/17.
 //  Copyright © 2017 Alex Fetisova. All rights reserved.
 //
 
