@@ -10,9 +10,11 @@ import SpriteKit
 
 class BGClass: SKSpriteNode
 {
-    func moveBG()
+    func moveBG(camera : SKCameraNode)
     {
-        
+        if self.position.y + self.size.height < camera.position.y {
+            self.position.y += self.size.height * 3
+        }
     }
 } // class
 
