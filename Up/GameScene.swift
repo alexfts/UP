@@ -66,14 +66,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var bg3: BGClass?
     private var mainCamera: SKCameraNode?
     private var balloon: BalloonClass?
+    private var leftBranch: SKSpriteNode?
+    private var rightBranch: SKSpriteNode?
     
     private var initialTouchTime: TimeInterval?
     private var initialTouchPosition: CGPoint?
     private var timer: Timer = Timer()
     
     let UPWARD_SPEED: CGFloat = 4
-    let TREE_SCALE: CGFloat = 0.3
     let TREE_Z_POSITION: CGFloat = 5
+    let MIN_GAP: CGFloat = -120
+    let MAX_GAP: CGFloat = -30
     
     override func didMove(to view: SKView)
     {
@@ -170,46 +173,67 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bg3?.moveBG(camera: mainCamera!)
     }
     
+    private func chooseObstacleType(fixBranchPosition: CGFloat)
+    {
+        let balloonWidth = balloon!.size.width
+        let sceneWidth = self.size.width
+        let remainingWidth = (sceneWidth - balloonWidth)
+        
+        // Define the left and right branches
+        leftBranch = SKSpriteNode(imageNamed: "tree_branch_left")
+        rightBranch = SKSpriteNode(imageNamed: "tree_branch_right")
+        
+        // Position the left and right branches
+        let branchWidth = leftBranch!.size.width
+        let leftBranchXPos = -(branchWidth/5)
+        let rightBranchXPos = size.width-(branchWidth/3)
+        leftBranch?.position = CGPoint(x: leftBranchXPos, y: fixBranchPosition)
+        rightBranch?.position = CGPoint(x: rightBranchXPos, y: fixBranchPosition)
+        leftBranch?.zPosition = TREE_Z_POSITION
+        rightBranch?.zPosition = TREE_Z_POSITION
+        
+        // Scale the left an right branches for different levels of difficulty
+        let betweenBranchGap = random(min: CGFloat(MIN_GAP), max: CGFloat(MAX_GAP))
+        let sumBranchesWidth = remainingWidth - betweenBranchGap
+        let branchScale = (sumBranchesWidth / 2.0) / branchWidth
+        
+        leftBranch?.setScale(branchScale)
+        rightBranch?.setScale(branchScale)
+        
+    }
+    
     private func addBranch()
     {
+        
         // Choose if the branch is created or not using a dice
         let makeBranchDice = random(min: CGFloat(1.0), max: CGFloat(6.0))
         if makeBranchDice < 4 {
             return
         }
-        let fixedBranchPosition = ((self.mainCamera?.position.y)! + self.size.height)
-        let leftRightCoin = random(min: CGFloat(1.0), max: CGFloat(2.0))
-        var branch = SKSpriteNode(imageNamed: "tree_branch_left")
-        branch.position = CGPoint(x: -branch.size.width/5, y: fixedBranchPosition)
         
-        // Choose if you're going to make a left or right branch
-        if leftRightCoin < 1.5 {
-            branch = SKSpriteNode(imageNamed: "tree_branch_right")
-            branch.position = CGPoint(x: size.width-branch.size.width/3, y: fixedBranchPosition)
-        }
-        initializePhysicsWorld(node: branch)
-        branch.zPosition = TREE_Z_POSITION
-        branch.setScale(TREE_SCALE)
+        // Choose an obstacle with varying difficulty level
+        let fixedBranchPosition = ((self.mainCamera?.position.y)! + self.size.height)
+        chooseObstacleType(fixBranchPosition: fixedBranchPosition)
+
+        initializePhysicsWorld(node: leftBranch!)
+        initializePhysicsWorld(node: rightBranch!)
         
         // Set bitmask and collision mask for banch
-        setBitMask(node: branch, categoryBitMask: PhysicsCategory.branch, contactTestBitMask: PhysicsCategory.balloon)
-        addChild(branch)
+        setBitMask(node: leftBranch!, categoryBitMask: PhysicsCategory.branch, contactTestBitMask: PhysicsCategory.balloon)
+        setBitMask(node: rightBranch!, categoryBitMask: PhysicsCategory.branch, contactTestBitMask: PhysicsCategory.balloon)
+        addChild(leftBranch!)
+        addChild(rightBranch!)
         
         // Remove the branch after 20 seconds
         let actionMoveDone = SKAction.removeFromParent()
-        branch.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
+        leftBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
+        rightBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
+
     }
     
-    func projectileDidCollideWithMonster()
+    private func projectileDidCollideWithMonster()
     {
         balloon?.removeFromParent()
-//        monstersDestroyed += 1
-//        if (monstersDestroyed > 30) {
-//            let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
-//            let gameOverScene = GameOverScene(size: self.size, won: true)
-//            self.view?.presentScene(gameOverScene, transition: reveal)
-//        }
-        
     }
 
     func didBegin(_ contact: SKPhysicsContact)
