@@ -176,30 +176,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private func chooseObstacleType(fixBranchPosition: CGFloat)
     {
         let balloonWidth = balloon!.size.width
-        let sceneWidth = self.size.width
-        let remainingWidth = (sceneWidth - balloonWidth)
+//        let sceneWidth = self.size.width
+//        let remainingWidth = (sceneWidth - balloonWidth)
         
         // Define the left and right branches
-        leftBranch = SKSpriteNode(imageNamed: "tree_branch_left")
-        rightBranch = SKSpriteNode(imageNamed: "tree_branch_right")
+        leftBranch = SKSpriteNode(imageNamed: "left_branch")
+        rightBranch = SKSpriteNode(imageNamed: "right_branch")
+        leftBranch?.setScale(0.3)
+        rightBranch?.setScale(0.3)
+        leftBranch?.size.width = (leftBranch?.size.width)! * 1.4
+        rightBranch?.size.width = (rightBranch?.size.width)! * 1.4
         
+        // Choose the difficuty level and Gaps's position
+//        let gapX0 = random(min:0, max: (scene?.size.width)! - balloonWidth)
+        let gapX0 = CGFloat(10.0)
+        let betweenBranchGap = random(min: CGFloat(balloonWidth), max: CGFloat(balloonWidth*1.5))
+        let gapX1 = gapX0 + betweenBranchGap
+
         // Position the left and right branches
         let branchWidth = leftBranch!.size.width
-        let leftBranchXPos = -(branchWidth/5)
-        let rightBranchXPos = size.width-(branchWidth/3)
+        let leftBranchXPos = gapX0 - (branchWidth / 2.0)
+        let rightBranchXPos = gapX1 + (branchWidth / 2.0)
         leftBranch?.position = CGPoint(x: leftBranchXPos, y: fixBranchPosition)
         rightBranch?.position = CGPoint(x: rightBranchXPos, y: fixBranchPosition)
         leftBranch?.zPosition = TREE_Z_POSITION
         rightBranch?.zPosition = TREE_Z_POSITION
         
-        // Scale the left an right branches for different levels of difficulty
-        let betweenBranchGap = random(min: CGFloat(MIN_GAP), max: CGFloat(MAX_GAP))
-        let sumBranchesWidth = remainingWidth - betweenBranchGap
-        let branchScale = (sumBranchesWidth / 2.0) / branchWidth
-        
-        leftBranch?.setScale(branchScale)
-        rightBranch?.setScale(branchScale)
-        
+//        // Scale the left an right branches for different levels of difficulty
+//        let betweenBranchGap = random(min: CGFloat(MIN_GAP), max: CGFloat(MAX_GAP))
+//        let sumBranchesWidth = remainingWidth - betweenBranchGap
+//        let leftBranchScale = (sumBranchesWidth / 2.0) / branchWidth
+//        let rightBranchScale = (sumBranchesWidth / 2.0) / branchWidth
+//        
+//        leftBranch?.setScale(0.5)
+//        rightBranch?.setScale(0.5)
+//        leftBranch?.size.width = (leftBranch?.size.width)! * 0.4
+//        rightBranch?.size.width = (rightBranch?.size.width)! * 1.6
     }
     
     private func addBranch()
