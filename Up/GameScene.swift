@@ -176,8 +176,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private func chooseObstacleType(fixBranchPosition: CGFloat)
     {
         let balloonWidth = balloon!.size.width
-//        let sceneWidth = self.size.width
-//        let remainingWidth = (sceneWidth - balloonWidth)
+        let sceneWidth = self.size.width
+        let remainingWidth = (sceneWidth - balloonWidth)
         
         // Define the left and right branches
         leftBranch = SKSpriteNode(imageNamed: "left_branch")
@@ -188,8 +188,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         rightBranch?.size.width = (rightBranch?.size.width)! * 1.4
         
         // Choose the difficuty level and Gaps's position
-//        let gapX0 = random(min:0, max: (scene?.size.width)! - balloonWidth)
-        let gapX0 = CGFloat(10.0)
+        let gapX0 = random(min:CGFloat(-sceneWidth / 2.0), max: CGFloat(-sceneWidth / 2.0) + remainingWidth)
+//        print(mainCamera?.scene?.position.x)
+//        print(mainCamera?.scene?.size.width)
         let betweenBranchGap = random(min: CGFloat(balloonWidth), max: CGFloat(balloonWidth*1.5))
         let gapX1 = gapX0 + betweenBranchGap
 
