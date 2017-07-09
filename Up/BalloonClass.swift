@@ -12,9 +12,9 @@ class BalloonClass: SKSpriteNode
 {
     private var balloonAnimation  = [SKTexture]()
     private var animateBalloonWiggle = SKAction()
+    private var direction: CGPoint?
 
-    let WIND_FORCE_UNIT: CGFloat = 150
-    //let MOVE_DURATION: Double = 0.001
+    let WIND_FORCE_UNIT: CGFloat = 0.00000002
 
     func wiggleBalloon()
     {
@@ -32,26 +32,14 @@ class BalloonClass: SKSpriteNode
         self.run(SKAction.repeatForever(animateBalloonWiggle))
     }
     
-    func initializePhysicsWorld()
+    func calculateDirection(touchLocation: CGPoint)
     {
-        self.physicsBody = SKPhysicsBody(texture: self.texture!, size: self.size)
-        if let physics = self.physicsBody {
-            physics.affectedByGravity = false
-            physics.allowsRotation = true
-            physics.isDynamic = true
-            physics.linearDamping = 1.5
-            physics.angularDamping = 1.5
-        }
+        direction = (self.position - touchLocation).normalize()
     }
-    func moveBalloon(touchLocation: CGPoint, touchDuration: TimeInterval)
+    
+    func applyForce(touchDuration: TimeInterval)
     {
-        let force = (self.position - touchLocation).normalize() *
-            WIND_FORCE_UNIT * CGFloat(touchDuration)
-        //let windForce = direction * WIND_FORCE_UNIT * CGFloat(touchDuration)
-        //let newDestination = self.position + windForce
-        //let actionMove = SKAction.move(to: newDestination, duration: MOVE_DURATION)
-        
-        //self.run(actionMove)
+        let force = direction! * WIND_FORCE_UNIT * CGFloat(touchDuration)
         self.physicsBody!.applyImpulse(CGVector(dx: force.x, dy: force.y))
     }
 }
