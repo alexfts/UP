@@ -163,6 +163,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private func manageBalloon()
     {
+        // check if balloon went outside of the bounds
+        if (isBalloonTouchingScreenEdge()) { gameOver() }
         self.balloon?.position.y += UPWARD_SPEED
     }
     
@@ -243,9 +245,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     }
     
-    private func projectileDidCollideWithMonster()
+    private func baloonDidCollideWithObstacle()
     {
         balloon?.removeFromParent()
+        gameOver()
     }
 
     func didBegin(_ contact: SKPhysicsContact)
@@ -262,8 +265,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if ((firstBody.categoryBitMask & PhysicsCategory.branch != 0) &&
             (secondBody.categoryBitMask & PhysicsCategory.balloon != 0)) {
-                projectileDidCollideWithMonster()
+                baloonDidCollideWithObstacle()
             }
+    }
+    
+    private func gameOver()
+    {
+        let reveal = SKTransition.doorsCloseHorizontal(withDuration: 0.5)
+        let gameOverScene = GameOverScene(size: self.size)
+        self.view?.presentScene(gameOverScene, transition: reveal)
+    }
+    
+    private func isBalloonTouchingScreenEdge() -> Bool
+    {
+        let x = balloon!.position.x
+        let y = balloon!.position.y
+        let halfwidth = balloon!.size.width / 2.0
+        let halfheight = balloon!.size.height / 2.0
+        
+        let topy = mainCamera!.position.y + self.size.height / 2.0
+        let bottomy = mainCamera!.position.y - self.size.height / 2.0
+        let leftx = -self.size.width / 2
+        let rightx = self.size.width / 2
+        
+        if (x + halfwidth >= rightx) { return true } // right
+        if (x - halfwidth <= leftx) { return true } // left
+        if (y + halfheight >= topy) { return true } // top
+        if (y - halfheight <= bottomy) { return true } // bottom
+        
+        return false
     }
 
 } // class

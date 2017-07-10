@@ -14,8 +14,12 @@ class BalloonClass: SKSpriteNode
     private var animateBalloonWiggle = SKAction()
     private var direction: CGPoint?
 
+    private var centerOffset: CGPoint?
+    private var radius: CGFloat?
+    
     let WIND_FORCE_UNIT: CGFloat = 0.00000002
-
+    private let BALOON_ROUND_PROPORTION = 0.45
+    
     func wiggleBalloon()
     {
         for name in ["balloon_right", "balloon_left"] {
@@ -30,6 +34,11 @@ class BalloonClass: SKSpriteNode
         )
         
         self.run(SKAction.repeatForever(animateBalloonWiggle))
+    }
+    
+    func initializeSize()
+    {
+        
     }
     
     func calculateDirection(touchLocation: CGPoint)
