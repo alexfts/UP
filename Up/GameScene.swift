@@ -72,11 +72,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var initialTouchTime: TimeInterval?
     private var initialTouchPosition: CGPoint?
     private var timer: Timer = Timer()
+    private var branchYPos: CGFloat = 0.0
     
-    let UPWARD_SPEED: CGFloat = 4
+    let UPWARD_SPEED: CGFloat = 3
     let TREE_Z_POSITION: CGFloat = 5
-    let MIN_GAP: CGFloat = -120
-    let MAX_GAP: CGFloat = -30
+    let MIN_GAP_SCALAR: CGFloat = 1.5
+    let MAX_GAP_SCALAR: CGFloat = 2.5
+    let SAFETY_NET_X = CGFloat(40.0)
+    let BRANCH_SCALE = CGFloat(0.3)
+    let BRANCH_WIDTH_SCALE = CGFloat(1.2)
     
     override func didMove(to view: SKView)
     {
@@ -175,45 +179,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bg3?.moveBG(camera: mainCamera!)
     }
     
-    private func chooseObstacleType(fixBranchPosition: CGFloat)
+    private func chooseObstacleType()
     {
         let balloonWidth = balloon!.size.width
-//        let sceneWidth = self.size.width
-//        let remainingWidth = (sceneWidth - balloonWidth)
+        let sceneWidth = self.size.width
+        let remainingWidth = (sceneWidth - balloonWidth)
         
         // Define the left and right branches
         leftBranch = SKSpriteNode(imageNamed: "left_branch")
         rightBranch = SKSpriteNode(imageNamed: "right_branch")
-        leftBranch?.setScale(0.3)
-        rightBranch?.setScale(0.3)
-        leftBranch?.size.width = (leftBranch?.size.width)! * 1.4
-        rightBranch?.size.width = (rightBranch?.size.width)! * 1.4
+        leftBranch?.setScale(BRANCH_SCALE)
+        rightBranch?.setScale(BRANCH_SCALE)
+        leftBranch?.size.width = (leftBranch?.size.width)! * BRANCH_WIDTH_SCALE
+        rightBranch?.size.width = (rightBranch?.size.width)! * BRANCH_WIDTH_SCALE
         
         // Choose the difficuty level and Gaps's position
-//        let gapX0 = random(min:0, max: (scene?.size.width)! - balloonWidth)
-        let gapX0 = CGFloat(10.0)
-        let betweenBranchGap = random(min: CGFloat(balloonWidth), max: CGFloat(balloonWidth*1.5))
-        let gapX1 = gapX0 + betweenBranchGap
+        var gapX0 = random(min:CGFloat(-sceneWidth / 2.0), max: CGFloat(-sceneWidth / 2.0) + remainingWidth)
+        let betweenBranchGap = random(min: CGFloat(balloonWidth * MIN_GAP_SCALAR), max: CGFloat(balloonWidth * MAX_GAP_SCALAR))
+        var gapX1 = gapX0 + betweenBranchGap
+        
+        // Make the cases on the edge of the screen easier
+        if gapX0 - SAFETY_NET_X < -sceneWidth / 2.0{
+            gapX0 = gapX0 + SAFETY_NET_X
+            gapX1 = gapX1 + SAFETY_NET_X
+        }
+        if gapX1 + SAFETY_NET_X > sceneWidth / 2.0{
+            gapX1 = gapX1 - SAFETY_NET_X
+            gapX0 = gapX0 - SAFETY_NET_X
+        }
+
 
         // Position the left and right branches
         let branchWidth = leftBranch!.size.width
         let leftBranchXPos = gapX0 - (branchWidth / 2.0)
         let rightBranchXPos = gapX1 + (branchWidth / 2.0)
-        leftBranch?.position = CGPoint(x: leftBranchXPos, y: fixBranchPosition)
-        rightBranch?.position = CGPoint(x: rightBranchXPos, y: fixBranchPosition)
+        leftBranch?.position = CGPoint(x: leftBranchXPos, y: branchYPos)
+        rightBranch?.position = CGPoint(x: rightBranchXPos, y: branchYPos)
         leftBranch?.zPosition = TREE_Z_POSITION
         rightBranch?.zPosition = TREE_Z_POSITION
         
-//        // Scale the left an right branches for different levels of difficulty
-//        let betweenBranchGap = random(min: CGFloat(MIN_GAP), max: CGFloat(MAX_GAP))
-//        let sumBranchesWidth = remainingWidth - betweenBranchGap
-//        let leftBranchScale = (sumBranchesWidth / 2.0) / branchWidth
-//        let rightBranchScale = (sumBranchesWidth / 2.0) / branchWidth
-//        
-//        leftBranch?.setScale(0.5)
-//        rightBranch?.setScale(0.5)
-//        leftBranch?.size.width = (leftBranch?.size.width)! * 0.4
-//        rightBranch?.size.width = (rightBranch?.size.width)! * 1.6
     }
     
     private func addBranch()
@@ -221,13 +225,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Choose if the branch is created or not using a dice
         let makeBranchDice = random(min: CGFloat(1.0), max: CGFloat(6.0))
-        if makeBranchDice < 4 {
+        if makeBranchDice < 4.0 {
             return
         }
-        
         // Choose an obstacle with varying difficulty level
-        let fixedBranchPosition = ((self.mainCamera?.position.y)! + self.size.height)
-        chooseObstacleType(fixBranchPosition: fixedBranchPosition)
+        branchYPos = ((self.mainCamera?.position.y)! + self.size.height)
+        chooseObstacleType()
 
         initializePhysicsWorld(node: leftBranch!)
         initializePhysicsWorld(node: rightBranch!)
@@ -242,7 +245,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let actionMoveDone = SKAction.removeFromParent()
         leftBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
         rightBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
-
+        
+        // You made a branch
+        madeBranch = true
     }
     
     private func baloonDidCollideWithObstacle()
