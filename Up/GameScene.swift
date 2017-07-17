@@ -61,6 +61,16 @@ struct PhysicsCategory {
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    let UPWARD_SPEED: CGFloat = 2
+    let TREE_Z_POSITION: CGFloat = 5
+    let MIN_GAP_SCALAR: CGFloat = 1.5
+    let MAX_GAP_SCALAR: CGFloat = 2.5
+    let SAFETY_NET_X = CGFloat(40.0)
+    let BRANCH_SCALE = CGFloat(0.3)
+    let BRANCH_WIDTH_SCALE = CGFloat(1.2)
+    let MAX_NUM_BRANCHES = 3
+    let FIXED_BRANCH_GAP: CGFloat = 900
+    
     private var bg1: BGClass?
     private var bg2: BGClass?
     private var bg3: BGClass?
@@ -68,19 +78,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var balloon: BalloonClass?
     private var leftBranch: SKSpriteNode?
     private var rightBranch: SKSpriteNode?
+    private var extraHeight: CGFloat = 0
+    private var prevActions = [0, 0, 0]
     
     private var initialTouchTime: TimeInterval?
     private var initialTouchPosition: CGPoint?
     private var timer: Timer = Timer()
-    private var branchYPos: CGFloat = 0.0
-    
-    let UPWARD_SPEED: CGFloat = 3
-    let TREE_Z_POSITION: CGFloat = 5
-    let MIN_GAP_SCALAR: CGFloat = 1.5
-    let MAX_GAP_SCALAR: CGFloat = 2.5
-    let SAFETY_NET_X = CGFloat(40.0)
-    let BRANCH_SCALE = CGFloat(0.3)
-    let BRANCH_WIDTH_SCALE = CGFloat(1.2)
     
     override func didMove(to view: SKView)
     {
@@ -151,13 +154,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setBitMask(node: balloon!, categoryBitMask: PhysicsCategory.balloon, contactTestBitMask: PhysicsCategory.branch)
         balloon!.wiggleBalloon()
         
+        Timer.scheduledTimer(timeInterval: TimeInterval(7), target: self, selector: #selector(self.removeItems), userInfo: nil, repeats: true)
+        
         // Add and remove branches
         run(SKAction.repeatForever(
             SKAction.sequence([
-                SKAction.run(addBranch),
-                SKAction.wait(forDuration: 1.0)
+                SKAction.wait(forDuration: 3),
+                SKAction.run(decideOnMakingBranch)
                 ])
         ))
+
     }
     
     private func manageCamera()
@@ -179,7 +185,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bg3?.moveBG(camera: mainCamera!)
     }
     
-    private func chooseObstacleType()
+    private func decideOnMakingBranch()
+    {
+        if prevActions.reduce(0,+) == 0 {
+            createBranch()
+            prevActions.insert(1, at: 0)
+        } else {
+            let coinValue = Int(arc4random_uniform(2))
+            print(coinValue)
+            if coinValue == 1 {
+                createBranch()
+            }
+            prevActions.insert(coinValue, at: 0)
+        }
+        prevActions.removeLast()
+    }
+    private func chooseObstacleType(height: CGFloat)
     {
         let balloonWidth = balloon!.size.width
         let sceneWidth = self.size.width
@@ -213,25 +234,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let branchWidth = leftBranch!.size.width
         let leftBranchXPos = gapX0 - (branchWidth / 2.0)
         let rightBranchXPos = gapX1 + (branchWidth / 2.0)
-        leftBranch?.position = CGPoint(x: leftBranchXPos, y: branchYPos)
-        rightBranch?.position = CGPoint(x: rightBranchXPos, y: branchYPos)
+        leftBranch?.position = CGPoint(x: leftBranchXPos, y: height)
+        rightBranch?.position = CGPoint(x: rightBranchXPos, y: height)
         leftBranch?.zPosition = TREE_Z_POSITION
         rightBranch?.zPosition = TREE_Z_POSITION
         
     }
     
+    private func createBranch()
+    {
+        let nextBranchYPos = (self.mainCamera?.position.y)! + FIXED_BRANCH_GAP
+        chooseObstacleType(height: nextBranchYPos)
+        addBranch()
+    }
     private func addBranch()
     {
-        
-        // Choose if the branch is created or not using a dice
-        let makeBranchDice = random(min: CGFloat(1.0), max: CGFloat(6.0))
-        if makeBranchDice < 4.0 {
-            return
-        }
-        // Choose an obstacle with varying difficulty level
-        branchYPos = ((self.mainCamera?.position.y)! + self.size.height)
-        chooseObstacleType()
-
         initializePhysicsWorld(node: leftBranch!)
         initializePhysicsWorld(node: rightBranch!)
         
@@ -242,18 +259,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(rightBranch!)
         
         // Remove the branch after 20 seconds
-        let actionMoveDone = SKAction.removeFromParent()
-        leftBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
-        rightBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 20), actionMoveDone]))
-        
-        // You made a branch
-        madeBranch = true
+//        let actionMoveDone = SKAction.removeFromParent()
+//        leftBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 15), actionMoveDone]))
+//        rightBranch?.run(SKAction.sequence([SKAction.wait(forDuration: 15), actionMoveDone]))
+
+    }
+    
+    func removeItems() {
+        for child in children {
+            if child.name == "left_branch" || child.name == "right_branch" {
+                if child.position.y + self.size.height / 2.0 < self.mainCamera!.position.y {
+                    child.removeFromParent();
+                }
+            }
+        }
     }
     
     private func baloonDidCollideWithObstacle()
     {
         balloon?.removeFromParent()
-        gameOver()
+//        gameOver()
     }
 
     func didBegin(_ contact: SKPhysicsContact)
